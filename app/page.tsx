@@ -561,10 +561,14 @@ export default function DashboardPage() {
 
   const checkUserInFlightRef = useRef(false);
 
+  const [bootStep, setBootStep] = useState<string>("init");
+  const [bootError, setBootError] = useState<string | null>(null);
+
   const [cardDetail, setCardDetail] = useState<{ group: DetailGroup; monthKey: MonthKey } | null>(null);
 
   useEffect(() => {
     let initialScope: DataScope = "personal";
+    setBootStep("read-localstorage");
     try {
       const savedScope = localStorage.getItem(STORAGE_KEY_SCOPE);
       if (savedScope === "personal" || savedScope === "group") initialScope = savedScope as DataScope;
@@ -574,32 +578,7 @@ export default function DashboardPage() {
     setDataScope(initialScope);
     setGroupNavOpen(initialScope === "group");
 
-    const checkUser = async () => {
-      if (checkUserInFlightRef.current) return;
-      checkUserInFlightRef.current = true;
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          router.push("/login");
-          return;
-        }
-        setUser(session.user);
-        
-        const prof = await getOrCreateProfile(session.user.id);
-        setProfile(prof);
-        if (prof.household_id) {
-          const members = await getHouseholdMembers(prof.household_id);
-          setHouseholdMembers(members);
-          await syncFromSupabase(prof.household_id, initialScope);
-        }
-      } catch (err) {
-        console.error("Profile error:", err);
-      } finally {
-        checkUserInFlightRef.current = false;
-      }
-    };
-    checkUser();
-
+    // 先にローカルデータを復元して画面を進める（同期/認証が遅い端末でも無限スピナーにしない）
     const data = normalizeStoredData(loadFromStorage(storageKeyForScope(initialScope)));
     setIncomeByMonth(data.incomeByMonth);
     setOtherIncomeByMonth(data.otherIncomeByMonth);
@@ -617,6 +596,48 @@ export default function DashboardPage() {
       // ignore
     }
     setHydrated(true);
+
+    const checkUser = async () => {
+      if (checkUserInFlightRef.current) return;
+      checkUserInFlightRef.current = true;
+      try {
+        setBootStep("auth-get-session");
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setBootStep("auth-no-session");
+          router.push("/login");
+          return;
+        }
+        setUser(session.user);
+
+        setBootStep("profile-load");
+        const prof = await getOrCreateProfile(session.user.id);
+        setProfile(prof);
+        if (prof.household_id) {
+          setBootStep("sync-from-supabase");
+          const members = await getHouseholdMembers(prof.household_id);
+          setHouseholdMembers(members);
+          await syncFromSupabase(prof.household_id, initialScope);
+        }
+
+        setBootStep("ready");
+      } catch (err: any) {
+        setBootStep("error");
+        setBootError(err?.message ?? String(err));
+        console.error("Profile error:", err);
+      } finally {
+        checkUserInFlightRef.current = false;
+      }
+    };
+
+    const t = window.setTimeout(() => {
+      setBootStep("timeout");
+      setBootError((prev) => prev ?? "初期化がタイムアウトしました。再読み込みしてください。");
+    }, 15000);
+
+    void checkUser().finally(() => {
+      window.clearTimeout(t);
+    });
   }, []);
 
   const syncFromSupabase = async (householdId: string, targetScope?: DataScope) => {
@@ -1274,8 +1295,10 @@ export default function DashboardPage() {
 
   if (!hydrated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50 px-6">
         <RefreshCw className="h-8 w-8 animate-spin text-sky-500" />
+        <div className="text-xs font-bold text-slate-500">起動中: {bootStep}</div>
+        {bootError && <div className="text-xs font-bold text-rose-600">{bootError}</div>}
       </div>
     );
   }
