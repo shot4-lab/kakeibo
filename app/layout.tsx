@@ -37,6 +37,44 @@ export default function RootLayout({
     <html lang="ja">
       <body className={inter.className}>
         <Script
+          id="global-error-catcher"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+(function () {
+  try {
+    function show(msg) {
+      try {
+        var id = '__kakeibo_err__';
+        var el = document.getElementById(id);
+        if (!el) {
+          el = document.createElement('pre');
+          el.id = id;
+          el.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;max-height:50vh;overflow:auto;z-index:99999;background:rgba(15,23,42,0.95);color:#fff;padding:12px;border-radius:12px;font-size:12px;white-space:pre-wrap;line-height:1.35;';
+          document.body.appendChild(el);
+        }
+        el.textContent = String(msg);
+      } catch (e) {}
+    }
+    window.addEventListener('error', function (e) {
+      var m = e && e.message ? e.message : 'Unknown error';
+      var f = e && e.filename ? e.filename : '';
+      var l = e && e.lineno ? e.lineno : '';
+      var c = e && e.colno ? e.colno : '';
+      show('[JS ERROR]\n' + m + (f ? ('\n' + f + ':' + l + ':' + c) : ''));
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      var r = e && e.reason ? e.reason : 'Unknown rejection';
+      show('[UNHANDLED PROMISE]\n' + (r && r.stack ? r.stack : String(r)));
+    });
+  } catch (e) {
+    // ignore
+  }
+})();
+`,
+          }}
+        />
+        <Script
           id="ios-sw-reset-once"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
