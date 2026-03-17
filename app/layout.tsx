@@ -134,6 +134,23 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <div
+          style={{
+            position: "fixed",
+            top: 8,
+            left: 8,
+            zIndex: 99998,
+            background: "rgba(2,6,23,0.75)",
+            color: "#fff",
+            padding: "4px 8px",
+            borderRadius: 9999,
+            fontSize: 12,
+            lineHeight: 1,
+            pointerEvents: "none",
+          }}
+        >
+          BUILD: 89e9ff1
+        </div>
         {children}
       </body>
     </html>
