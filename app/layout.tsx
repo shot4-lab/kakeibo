@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import type { ReactNode } from "react";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,7 +35,54 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <Script
+          id="ios-sw-reset-once"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+(function () {
+  try {
+    var ua = navigator.userAgent || "";
+    var isIOS = /iPad|iPhone|iPod/.test(ua) || (ua.includes("Mac") && "ontouchend" in document);
+    if (!isIOS) return;
+    if (!("serviceWorker" in navigator)) return;
+    var key = "kakeibo_ios_sw_reset_v1";
+    if (localStorage.getItem(key) === "1") return;
+    localStorage.setItem(key, "1");
+
+    Promise.resolve()
+      .then(function () {
+        return navigator.serviceWorker.getRegistrations();
+      })
+      .then(function (regs) {
+        return Promise.all((regs || []).map(function (r) {
+          try { return r.unregister(); } catch (e) { return false; }
+        }));
+      })
+      .then(function () {
+        if (!window.caches || !caches.keys) return;
+        return caches.keys().then(function (keys) {
+          return Promise.all(keys.map(function (k) {
+            try { return caches.delete(k); } catch (e) { return false; }
+          }));
+        });
+      })
+      .finally(function () {
+        // iOS Safari は更新が噛み合わないことがあるため、1回だけ強制リロード
+        var url = new URL(window.location.href);
+        url.searchParams.set("swreset", Date.now().toString());
+        window.location.replace(url.toString());
+      });
+  } catch (e) {
+    // ignore
+  }
+})();
+`,
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }
