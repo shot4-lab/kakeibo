@@ -77,11 +77,11 @@ export default function RootLayout({
       var f = e && e.filename ? e.filename : '';
       var l = e && e.lineno ? e.lineno : '';
       var c = e && e.colno ? e.colno : '';
-      show('[JS ERROR]\n' + m + (f ? ('\n' + f + ':' + l + ':' + c) : ''));
+      show('[JS ERROR]\\n' + m + (f ? ('\\n' + f + ':' + l + ':' + c) : ''));
     });
     window.addEventListener('unhandledrejection', function (e) {
       var r = e && e.reason ? e.reason : 'Unknown rejection';
-      show('[UNHANDLED PROMISE]\n' + (r && r.stack ? r.stack : String(r)));
+      show('[UNHANDLED PROMISE]\\n' + (r && r.stack ? r.stack : String(r)));
     });
   } catch (e) {
     // ignore
