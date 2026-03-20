@@ -40,61 +40,6 @@ export default function RootLayout({
             __html: `
 (function () {
   try {
-    function ensureOkMark() {
-      try {
-        var id = '__kakeibo_js_ok__';
-        if (document.getElementById(id)) return;
-        var el = document.createElement('div');
-        el.id = id;
-        el.textContent = 'JS OK';
-        el.style.cssText = 'position:fixed;top:8px;right:8px;z-index:99999;background:rgba(34,197,94,0.95);color:#fff;padding:6px 10px;border-radius:9999px;font-size:12px;line-height:1;';
-        document.addEventListener('DOMContentLoaded', function () {
-          try { document.body.appendChild(el); } catch (e) {}
-        });
-      } catch (e) {}
-    }
-    function show(msg) {
-      try {
-        ensureOkMark();
-        var id = '__kakeibo_err__';
-        var el = document.getElementById(id);
-        if (!el) {
-          el = document.createElement('pre');
-          el.id = id;
-          el.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;max-height:50vh;overflow:auto;z-index:99999;background:rgba(15,23,42,0.95);color:#fff;padding:12px;border-radius:12px;font-size:12px;white-space:pre-wrap;line-height:1.35;';
-          document.addEventListener('DOMContentLoaded', function () {
-            try { document.body.appendChild(el); } catch (e) {}
-          });
-        }
-        el.textContent = String(msg);
-      } catch (e) {}
-    }
-
-    ensureOkMark();
-
-    window.addEventListener('error', function (e) {
-      var m = e && e.message ? e.message : 'Unknown error';
-      var f = e && e.filename ? e.filename : '';
-      var l = e && e.lineno ? e.lineno : '';
-      var c = e && e.colno ? e.colno : '';
-      show('[JS ERROR]\\n' + m + (f ? ('\\n' + f + ':' + l + ':' + c) : ''));
-    });
-    window.addEventListener('unhandledrejection', function (e) {
-      var r = e && e.reason ? e.reason : 'Unknown rejection';
-      show('[UNHANDLED PROMISE]\\n' + (r && r.stack ? r.stack : String(r)));
-    });
-  } catch (e) {
-    // ignore
-  }
-})();
-`,
-          }}
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-(function () {
-  try {
     var ua = navigator.userAgent || "";
     var isIOS = /iPad|iPhone|iPod/.test(ua) || (ua.includes("Mac") && "ontouchend" in document);
     if (!isIOS) return;
@@ -134,42 +79,6 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <noscript>
-          <div
-            style={{
-              position: "fixed",
-              top: 8,
-              right: 8,
-              zIndex: 99999,
-              background: "rgba(220,38,38,0.95)",
-              color: "#fff",
-              padding: "8px 10px",
-              borderRadius: 12,
-              fontSize: 12,
-              lineHeight: 1.35,
-              maxWidth: "70vw",
-            }}
-          >
-            JavaScript が無効です（Safari設定 → 詳細 → JavaScript をオンにしてください）
-          </div>
-        </noscript>
-        <div
-          style={{
-            position: "fixed",
-            top: 8,
-            left: 8,
-            zIndex: 99998,
-            background: "rgba(2,6,23,0.75)",
-            color: "#fff",
-            padding: "4px 8px",
-            borderRadius: 9999,
-            fontSize: 12,
-            lineHeight: 1,
-            pointerEvents: "none",
-          }}
-        >
-          BUILD: 7106804
-        </div>
         {children}
       </body>
     </html>
