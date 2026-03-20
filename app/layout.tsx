@@ -134,6 +134,25 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <noscript>
+          <div
+            style={{
+              position: "fixed",
+              top: 8,
+              right: 8,
+              zIndex: 99999,
+              background: "rgba(220,38,38,0.95)",
+              color: "#fff",
+              padding: "8px 10px",
+              borderRadius: 12,
+              fontSize: 12,
+              lineHeight: 1.35,
+              maxWidth: "70vw",
+            }}
+          >
+            JavaScript が無効です（Safari設定 → 詳細 → JavaScript をオンにしてください）
+          </div>
+        </noscript>
         <div
           style={{
             position: "fixed",
@@ -149,7 +168,7 @@ export default function RootLayout({
             pointerEvents: "none",
           }}
         >
-          BUILD: 89e9ff1
+          BUILD: 7106804
         </div>
         {children}
       </body>
